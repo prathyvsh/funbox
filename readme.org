@@ -4,6 +4,6 @@
   ES6. In it’s current state, it is a collection of pure functions
   stylistically referencing Clojure and Standard ML canons.
 
-  Homepage: http://prabros.com/bazaar/funbox/
+  Homepage: http://prabros.com/bazaar/funbox/home.html
 
   (c) Prabros. 2017
