@@ -1,0 +1,9 @@
+{
+    "name": "funbox",
+    "version": "0.0.1",
+    "description": "ES6 Functional Programming Toolbox",
+    "main": "fun.js",
+    "author": "Prabros.",
+    "license": "MIT",
+    "homepage": "http://prabros.com/bazaar/funbox"
+}
