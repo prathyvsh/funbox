@@ -1,16 +1,15 @@
 "use strict";
 
-const exists = x => typeof x != 'undefined';
-
+/* Checks */
 const isArr = x => Array.isArray(x);
 
-const isAny = (f, v) => reduce((x,y) => x || y, false, map(f, v));
+const isAny = (f, v) => reduce((x,y) => x == true || y == true, false, map(f, v));
 
-const isAll = (f, v) => reduce((x,y) => x && y, true, map(f, v));
+const isEvery = (f, v) => reduce((x,y) => x == true && y == true, true, map(f, v));
 
-const isDomElem = o => (exists(HTMLElement) && o instanceof HTMLElement) || (exists(SVGElement) && o instanceof SVGElement);
+const isDomElem = o => (typeof HTMLElement != "undefined" && o instanceof HTMLElement) || (typeof SVGElement != "undefined" && o instanceof SVGElement);
 
-const isColl = o => isArr(o) || (exists(NodeList) && o instanceof NodeList);
+const isColl = o => isArr(o) || (typeof NodeList != "undefined" && o instanceof NodeList) || (typeof Set != "undefined" && o instanceof Set);
 
 const isObj = o => typeof(o) == "object" && typeof o != null && !isColl(o) && !isDomElem(o);
 
@@ -20,7 +19,7 @@ const isEmpty = a => {
 
     else if(isObj(a)) return Object.entries(a).length == 0;
 
-    else return a == null;
+    else return a == null || a == undefined;
     
 };
 
@@ -68,11 +67,17 @@ const tail = arr => arr.slice(1);
 
 const concat = (...x) => Array.prototype.concat(...x);
 
+const transpose = colls => {
+
+    let repetition = colls.length > 0 ? Math.min(...map(x => x.length, colls)) : 0;
+
+    let idxs = repetition == 1 ? [0] : range(0,(repetition - 1));
+
+    return map(i => map(x => x[i], colls), idxs);
+    
+};
+
 /* Dictionary Ops */
-
-const selectKeys = (v,keys) => reduce((i,x) => (v[x] == 0 || v[x]) ? merge(i,{[x]: v[x]}) : i,{},keys);
-
-const merge = (...x) => Object.assign({},...x);
 
 const assoc = (s, k, v) => merge(s, {[k]: v});
 
@@ -86,9 +91,15 @@ const assocAbsent = (x,kvs) => {
 
 const dissoc = (s, ...props) => reduce((init,next) => (delete init[next],init), merge({},s), props);
 
+const merge = (...x) => Object.assign({},...x);
+
 const update = (s, prop, f, v) => assoc(s,prop,f(s[prop] || {},v));
 
+const selectKeys = (v,keys) => reduce((i,x) => (v[x] == 0 || v[x]) ? merge(i,{[x]: v[x]}) : i,{},keys);
+
 const renameKeys = (m, keymap = {}) => kvreduce((_,k,v) => ((k in m) && (m[v] = m[k], delete m[k]), m), keymap);
+
+/* Random */
 
 const random = (min, max, attrs = {}) => {
 
@@ -149,78 +160,24 @@ const randomItem = (arr = [], attrs) => {
 
 };
 
+/* HOFs */
 
 const partial = (f,x) => (y) => f(x,y);
 
-const identity = x => x
-
-const transpose = colls => {
-
-    let repetition = colls.length > 0 ? Math.min(...map(x => x.length, colls)) : 0;
-
-    let idxs = repetition == 1 ? [0] : range(0,(repetition - 1));
-
-    return map(i => map(x => x[i], colls), idxs);
-    
-};
-
+const identity = x => x;
 
 const repeat = (obj, times) => new Array(times).fill(obj);
 
 const repeatedly = (f,times,v) => map(() => f(v), range(1,times));
 
-const constantly = (f,times,v) => reduce((i,n) => f(i), v, range(1,times))
-
-const range = (from, to, step) => {
-
-    step = Math.abs(step) || 1;
-
-    if(!to) { to = from; from = 0;}
-
-    const r = [];
-
-    const direction = Math.sign(to - from);
-
-    for(let i = from; (direction != 0) && (direction > 0 ? i <= to : i >= to); i += step * direction) r.push(i);
-
-    return r;
-
-};
-
-
-const steps = (from, to, count) => {
-
-    /* Resort to 1 in case (count - 1) is zero
-       Ensure division by zero is avoided */
-    const scalar = count - 1 || 1;
-
-    // Need to find a way to reduce the repetition of code for 2D and 1D
-    if(isArr(from) && isArr(to)) {
-
-	const dist = vSub(to, from);
-
-	const stepSize = vDiv(dist, scalar);
-
-	return map(step => vAdd(from, vMul(stepSize, step)), range(count).slice(0,-1));
-	
-    };
-
-    const dist = to - from;
-
-    const stepSize = dist/scalar;
-
-    return map(step => from + (step * stepSize), range(count).slice(0,-1));
-
-};
+const constantly = (f,times,v) => reduce((i,n) => f(i), v, range(1,times));
 
 const interpose = (l1, l2) => reduce((i, [l1,l2]) => i.concat(l1[0], l2[0]), [l1.split(1), l2.split(1)], [], [l1,l2]);
 
 const grid = ({x = 0,y = 0, width, height}, hdiv, vdiv, hasEdge = false, {width: tileWidth = 0, height: tileHeight = 0} = {}) => {
 
-    let startX = x;
-    let endX = x + width;
-    let startY = y;
-    let endY = y + height;
+    let startX = x, endX = x + width;
+    let startY = y, endY = y + height;
 
     let xs = steps(startX, endX, hdiv + 2);
 
@@ -233,8 +190,7 @@ const grid = ({x = 0,y = 0, width, height}, hdiv, vdiv, hasEdge = false, {width:
 
     return mapcat(x => map(y => [x - tileWidth/2,y - tileHeight/2], ys), xs);
     
-}
-
+};
 
 const reduce = (f, init, coll) => {
 
@@ -304,7 +260,7 @@ const filter = (f, coll, coll2, ...colls) => {
 
 	    if(!coll2) {
 		
-		if(f(coll[i])) res.push(coll[i])
+		if(f(coll[i])) res.push(coll[i]);
 
 	    } else {
 		
@@ -322,28 +278,6 @@ const filter = (f, coll, coll2, ...colls) => {
 };
 
 const mapcat = (f, ...colls) => reduce(concat, [], map(f,...colls));
-
-const kvreduce = (f,init,o) => {
-
-    if(o) {
-
-	return Object.entries(o).reduce((acc, [k,v]) => f(acc,k,v), init);
-
-    } else {
-
-	o = init;
-
-	return Object.entries(o).reduce((acc, [k,v]) => f(acc,k,v), {});
-
-    }
-
-}
-
-const kvmap = (f,o) => kvreduce((acc,k,v) => merge(acc, f(k,v)), o);
-
-const mapKeys = (f,o) => kvreduce((acc,k,v) => merge(acc, {[f(k,v)]: v}), o);
-
-const mapVals = (f,o) => kvreduce((acc,k,v) => merge(acc, {[k]: f(k,v)}), o);
 
 const partition = (xs, n, step = 0) => {
 
@@ -391,6 +325,75 @@ const rollover = (x, count = 0, asCopy) => {
     
 };
 
+
+/* Range and Steps */
+
+const range = (from, to, step) => {
+
+    step = Math.abs(step) || 1;
+
+    if(!to) { to = from; from = 0;}
+
+    const r = [];
+
+    const direction = Math.sign(to - from);
+
+    for(let i = from; (direction != 0) && (direction > 0 ? i <= to : i >= to); i += step * direction) r.push(i);
+
+    return r;
+
+};
+
+const steps = (from, to, count) => {
+
+    /* Resort to 1 in case (count - 1) is zero
+       Ensure division by zero is avoided */
+    const scalar = count - 1 || 1;
+
+    // Need to find a way to reduce the repetition of code for 2D and 1D
+    if(isArr(from) && isArr(to)) {
+
+	const dist = vSub(to, from);
+
+	const stepSize = vDiv(dist, scalar);
+
+	return map(step => vAdd(from, vMul(stepSize, step)), range(count).slice(0,-1));
+	
+    };
+
+    const dist = to - from;
+
+    const stepSize = dist/scalar;
+
+    return map(step => from + (step * stepSize), range(count).slice(0,-1));
+
+};
+
+/* Object Ops */
+const kvreduce = (f,init,o) => {
+
+    if(o) {
+
+	return Object.entries(o).reduce((acc, [k,v]) => f(acc,k,v), init);
+
+    } else {
+
+	o = init;
+
+	return Object.entries(o).reduce((acc, [k,v]) => f(acc,k,v), {});
+
+    }
+
+}
+
+const kvmap = (f,o) => kvreduce((acc,k,v) => merge(acc, f(k,v)), o);
+
+const mapKeys = (f,o) => kvreduce((acc,k,v) => merge(acc, {[f(k,v)]: v}), o);
+
+const mapVals = (f,o) => kvreduce((acc,k,v) => merge(acc, {[k]: f(k,v)}), o);
+
+/* Equality */
+
 const objEq = (x,y) => {
 
     let xks = Object.keys(x).sort();
@@ -420,11 +423,11 @@ const eq = (x,y) => {
     }
 };
 
+/* Diffs */
+
 // [3,4], [3, 5] => 5
 // ["input", {type: "text", class: "valid"}] -> ["input", {type: "text", class: "invalid"}]
 // {class: "invalid"}
-
-// Change to {source: val, diff: val} if [x,y] is ambiguous
 const diffVals = (x, y, {showEq = true} = {}) => {
     
     if(eq(x,y)) {
@@ -433,7 +436,7 @@ const diffVals = (x, y, {showEq = true} = {}) => {
 
     } else {
 	
-	const result = ({...(x ? ({"sub": x}) : {}), ...(y ? ({"add": y}) : {})});
+	// const result = ({...(x ? ({"sub": x}) : {}), ...(y ? ({"add": y}) : {})});
 
 	return (isEmpty(result)) ? null : result;
 
@@ -498,6 +501,8 @@ const diff = (state1, state2, {showEq} = {}) => {
     
 };
 
+/* Loggers */
+
 const log = (...x) => {
 
     console.log(x.map(JSON.stringify) + "");
@@ -505,6 +510,8 @@ const log = (...x) => {
     
 };
 
-export {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit};
+if(typeof module != "undefined" && module.exports) {
+    module.exports = {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery};
+};
 
-// if(typeof module != "undefined" && module.exports) module.exports = fun;
+export {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isAny, isEvery};
