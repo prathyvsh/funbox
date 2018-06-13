@@ -11,7 +11,7 @@ const isDomElem = o => (typeof HTMLElement != "undefined" && o instanceof HTMLEl
 
 const isColl = o => isArr(o) || (typeof NodeList != "undefined" && o instanceof NodeList) || (typeof Set != "undefined" && o instanceof Set);
 
-const isObj = o => typeof(o) == "object" && typeof o != null && !isColl(o) && !isDomElem(o);
+const isObj = o => typeof(o) == "object" && (o != null) && !isColl(o) && !isDomElem(o);
 
 const isEmpty = a => {
 
@@ -22,6 +22,8 @@ const isEmpty = a => {
     else return a == null || a == undefined;
     
 };
+
+const notEmpty = a => isEmpty(a)  ? null : a;
 
 const find = (f,xs) => {
 
@@ -436,7 +438,7 @@ const diffVals = (x, y, {showEq = true} = {}) => {
 
     } else {
 	
-	// const result = ({...(x ? ({"sub": x}) : {}), ...(y ? ({"add": y}) : {})});
+	const result = ({...(x ? ({"sub": x}) : {}), ...(y ? ({"add": y}) : {})});
 
 	return (isEmpty(result)) ? null : result;
 
@@ -511,7 +513,7 @@ const log = (...x) => {
 };
 
 if(typeof module != "undefined" && module.exports) {
-    module.exports = {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery};
+    module.exports = {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery, notEmpty};
 };
 
-export {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery};
+export {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery, notEmpty};
