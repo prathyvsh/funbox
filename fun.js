@@ -3,9 +3,9 @@
 /* Checks */
 const isArr = x => Array.isArray(x);
 
-const isAny = (f, v) => reduce((x,y) => x == true || y == true, false, map(f, v));
+const isAny = (f, ...v) => reduce((x,y) => x == true || y == true, false, map(f, ...v));
 
-const isEvery = (f, v) => reduce((x,y) => x == true && y == true, true, map(f, v));
+const isEvery = (f, ...v) => reduce((x,y) => x == true && y == true, true, map(f, ...v));
 
 const isDomElem = o => (typeof HTMLElement != "undefined" && o instanceof HTMLElement) || (typeof SVGElement != "undefined" && o instanceof SVGElement);
 
@@ -438,7 +438,7 @@ const diffVals = (x, y, {showEq = true} = {}) => {
 
     } else {
 	
-	const result = ({...(x ? ({"sub": x}) : {}), ...(y ? ({"add": y}) : {})});
+	const result = f.merge({},(x ? {"sub": x} : {}), (y ? {"add": y} : {}));
 
 	return (isEmpty(result)) ? null : result;
 
