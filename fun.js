@@ -48,11 +48,13 @@ const vMul = ([x,y], m) => [x * m, y * m];
 
 const vDiv = ([x,y], m) => [x / m, y / m];
 
-const vRot = ([x,y], deg) => {
+const vRot = ([x,y], angleInDegrees) => {
     
-    deg = degToRad(deg);
+    const angleInRad = degToRad(angleInDegrees);
 
-    return [x * Math.cos(deg) - y * Math.sin(deg), x * Math.sin(deg) + y * Math.cos(deg)];
+    const cos = Math.cos(angleInRad), sin = Math.sin(angleInRad);
+
+    return [x * cos - y * sin, x * sin + y * cos];
 
 };
 
