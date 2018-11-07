@@ -1,5 +1,7 @@
 "use strict";
 
+const DEBUG = true;
+
 /* Checks */
 const isArr = x => Array.isArray(x);
 
@@ -15,7 +17,7 @@ const isObj = o => typeof(o) == "object" && (o != null) && !isColl(o) && !isDomE
 
 const isEmpty = a => {
 
-    if(isArr(a)) return a.length == 0;
+    if(typeof a == "string" || isArr(a)) return a.length == 0;
 
     else if(isObj(a)) return Object.entries(a).length == 0;
 
@@ -25,13 +27,7 @@ const isEmpty = a => {
 
 const notEmpty = a => isEmpty(a)  ? null : a;
 
-const find = (f,xs) => {
-
-    for(x of xs) { if(f(x)) { return x; } }
-
-    return null;
-    
-};
+const find = (f,xs) => xs.find((...x) => f(...x)) || null;
 
 /* Math Ops */
 const degToRad = x => (x / 180) * Math.PI;
@@ -69,7 +65,7 @@ const head = arr => arr[0];
 
 const tail = arr => arr.slice(1);
 
-const concat = (...x) => Array.prototype.concat(...x);
+const concat = (...arrs) => Array.prototype.concat(...arrs);
 
 const transpose = colls => {
 
@@ -206,17 +202,29 @@ const reduce = (f, init, coll) => {
 
 };
 
+const makeIterable = (o) => (o  && f.isObj(o)) ? Object.entries(o) : o;
+
 const map = (f, coll, coll2, ...colls) => {
+
+    const DEBUG = true;
+
+    DEBUG && !isArr(coll) && console.warn("Please provide an array to map");
 
     let res = [], count = null;
 
     if(colls.length > 0) {
 
+	DEBUG && !isEvery(x => isArr(x), colls) && console.warn("Please provide arrays as input");
+
 	const bigColl = [coll,coll2].concat(colls);
+
+	console.log(transpose(bigColl));
 
 	return map(x => f.apply(null,x), transpose(bigColl));
 
     } else {
+
+	DEBUG && !isArr(coll) && console.warn("Please provide an array to map along with first input");
 
 	count = coll2 ? Math.min(coll.length, coll2.length) : coll.length;
 
@@ -392,6 +400,14 @@ const kvreduce = (f,init,o) => {
 
 const kvmap = (f,o) => kvreduce((acc,k,v) => merge(acc, f(k,v)), o);
 
+const kvfilter = (f,o) => kvreduce((acc,k,v) => {
+
+    let result = f(k,v);
+
+    return result ? merge(acc, result) : acc;
+    
+}, o);
+
 const mapKeys = (f,o) => kvreduce((acc,k,v) => merge(acc, {[f(k,v)]: v}), o);
 
 const mapVals = (f,o) => kvreduce((acc,k,v) => merge(acc, {[k]: f(k,v)}), o);
@@ -412,19 +428,24 @@ const objEq = (x,y) => {
 
 const eq = (x,y) => {
 
-    if(isObj(x) && isObj(y)) {
+    if(typeof Set != "undefined" && x instanceof Set && y instanceof Set) {
+
+	return eq([...x].sort(), [...y].sort());
+	
+    } else if(isObj(x) && isObj(y)) {
 
 	return objEq(x,y);
 
-    } else if(isColl(x) && isColl(y)) {
+    } else if(isArr(x) && isArr(y)) {
 
-	return x.length === y.length && isAll(eq,x,y);
+	return x.length === y.length && isEvery(eq,x,y);
 
     } else {
 
 	return x === y;
 	
     }
+
 };
 
 /* Diffs */
@@ -440,7 +461,7 @@ const diffVals = (x, y, {showEq = true} = {}) => {
 
     } else {
 	
-	const result = f.merge({},(x ? {"sub": x} : {}), (y ? {"add": y} : {}));
+	const result = merge({},(x ? {"sub": x} : {}), (y ? {"add": y} : {}));
 
 	return (isEmpty(result)) ? null : result;
 
@@ -515,7 +536,7 @@ const log = (...x) => {
 };
 
 if(typeof module != "undefined" && module.exports) {
-    module.exports = {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery, notEmpty};
+    module.exports = {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, kvfilter, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery, notEmpty};
 };
 
-export {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery, notEmpty};
+export {merge, assoc, dissoc, update, renameKeys, transpose, repeat, range, steps, reduce, map, kvmap, kvfilter, mapKeys, mapVals, kvreduce, partition, rollover, grid, mapcat, objEq, eq, diffArrs, diffVals, diffObjs, diff, isArr, head, tail, isEmpty, log, normalizeArrs, isObj, partial, identity, find, random, randomVec, randomItem, vAdd, vSub, vMul, vDiv, vMag, vRot, vUnit, isAny, isEvery, notEmpty};
