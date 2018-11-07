@@ -176,7 +176,7 @@ const repeatedly = (f,times,v) => map(() => f(v), range(1,times));
 
 const constantly = (f,times,v) => reduce((i,n) => f(i), v, range(1,times));
 
-const interpose = (l1, l2) => reduce((i, [l1,l2]) => i.concat(l1[0], l2[0]), [l1.split(1), l2.split(1)], [], [l1,l2]);
+const interpose = (l1, l2) => reduce((i, [l1,l2]) => i.concat(l1[0], l2[0]), [l1.slice(1), l2.slice(1)], [], [l1,l2]);
 
 const grid = ({x = 0,y = 0, width, height}, hdiv, vdiv, hasEdge = false, {width: tileWidth = 0, height: tileHeight = 0} = {}) => {
 
