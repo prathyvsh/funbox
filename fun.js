@@ -85,7 +85,7 @@ const assocAbsent = (x,kvs) => {
 
     const assocOne = (x,k,v) => (k in x) ? x : merge(x,{[k]: v});
 
-    return kvreduce(assocOne, x);
+    return kvreduce((i,k,v) => assocOne(i,k,v), x, kvs);
 
 };
 
@@ -107,19 +107,23 @@ const random = (min, max, attrs = {}) => {
 
     let {asInt, seed, count = 1} = attrs;
 
-    if(!seed) seed = Date.now() + Math.random() * 1000000;
-
-    const distributor = 2 ** 13 + 1;
-
-    const prime = 1987;
+    if(seed == null) seed = Date.now() + Math.random() * 1000000;
 
     const threshold = 2 ** 32;
 
-    const rnd = (seed) => ((seed * distributor) + prime) % threshold;
+    const rnd = (seed, threshold = 2 ** 32) => {
+
+	const distributor = 2 ** 13 + 1;
+
+	const prime = 1987;
+	
+	return ((seed * distributor) + prime) % threshold;
+
+    }
 
     let res = [];
 
-    let nextSeed = rnd(seed);
+    let nextSeed = rnd(seed, threshold);
 
     for(let i = 0; i < count; i++) {
 
@@ -156,7 +160,7 @@ const randomItem = (arr = [], attrs) => {
 
     let indices = random(0, (arr.length - 1), merge(attrs, {asInt: true}), true);
 
-    return (isArr(indices)) ? map(x => arr[x], indices) : arr[indices];
+    return (isArr(indices)) ? map(x => arr[x], indices) : (arr[indices] ? arr[indices] : null);
 
 };
 
