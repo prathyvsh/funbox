@@ -71,7 +71,9 @@ const transpose = colls => {
 
     let repetition = colls.length > 0 ? Math.min(...map(x => x.length, colls)) : 0;
 
-    let idxs = repetition == 1 ? [0] : range(0,(repetition - 1));
+    if(repetition == 0) return repeat([], colls.length);
+
+    let idxs = notEmpty(range(0, (repetition - 1))) || [0];
 
     return map(i => map(x => x[i], colls), idxs);
     
@@ -172,11 +174,11 @@ const identity = x => x;
 
 const repeat = (obj, times) => new Array(times).fill(obj);
 
-const repeatedly = (f,times,v) => map(() => f(v), range(1,times));
+const repeatedly = (f,times,v) => map(() => f(v), tail(range(0, times)));
 
 const constantly = (f,times,v) => reduce((i,n) => f(i), v, range(1,times));
 
-const interpose = (l1, l2) => reduce((i, [l1,l2]) => i.concat(l1[0], l2[0]), [l1.slice(1), l2.slice(1)], [], [l1,l2]);
+const interpose = (l1, l2) => mapcat((x,y) => [x,y], l1,l2);
 
 const grid = ({x = 0,y = 0, width, height}, hdiv, vdiv, hasEdge = false, {width: tileWidth = 0, height: tileHeight = 0} = {}) => {
 
@@ -408,7 +410,7 @@ const kvfilter = (f,o) => kvreduce((acc,k,v) => {
 
     let result = f(k,v);
 
-    return result ? merge(acc, result) : acc;
+    return result ? merge(acc, {[k]: v}) : acc;
     
 }, o);
 
@@ -424,11 +426,13 @@ const objEq = (x,y) => {
     let xvs = Object.values(x).sort();
     let yks = Object.keys(y).sort();
     let yvs = Object.values(y).sort();
-    let innerChecks = xvs.length == yvs.length && isAll(eq, xvs, yvs);
+    let innerChecks = xvs.length == yvs.length && isEvery(eq, xvs, yvs);
     let result = innerChecks && xks.length == yks.length && JSON.stringify(xks) === JSON.stringify(yks);
     return result;
 
 };
+
+
 
 const eq = (x,y) => {
 
