@@ -1,9 +1,5 @@
 * Funbox
 
-  Funbox is an exploratory functional programming library written in
-  ES6. In it’s current state, it is a collection of pure functions
-  stylistically referencing Clojure and Standard ML canons.
+Funbox is an exploratory functional programming library written in ES6. In it’s current state, it is a collection of functions stylistically referencing Clojure and Standard ML canons.
 
-  Homepage: http://prabros.com/bazaar/funbox/home.html
-
-  (c) Prabros. 2017-2018
+  (c) Prabros. 2017-2020
